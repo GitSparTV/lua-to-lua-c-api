@@ -278,20 +278,59 @@ CAPI = {
 	end;
 	-- OP_LOADNIL
 	function(pc, proto, A, B, C) return "lua_pushvalue(L, lua_upvalueindex(" .. B .. "));" end; -- OP_GETUPVAL
-	function(pc, proto, A, B, C) return emitconstant(proto.constants[INDEXK(C) + 1][2]) .. " lua_gettable(L, lua_upvalueindex(" .. B .. "));" end; -- OP_GETTABUP
-	function(pc, proto, A, B, C) return emitconstant(proto.constants[INDEXK(C) + 1][2]) .. " lua_gettable(L, " .. B .. ");" end; -- OP_GETTABLE
-	function(pc, proto, A, B, C) return emitconstant(proto.constants[INDEXK(B) + 1][2]) .. " " .. emitconstant(proto.constants[INDEXK(C) + 1][2]) .. " lua_settable(L, lua_upvalueindex(" .. A .. "));" end; -- OP_SETTABUP
+	function(pc, proto, A, B, C)
+		local consts = proto.constants
+		local Cconst = consts[INDEXK(C) + 1]
+
+		if B == 0 and ISK(C) and Cconst[1] == LUA_TLNGSTR and not string.find(Cconst[2], "\0", 1, true) then
+			return "lua_getglobal(L, \"" .. sanitizeString(Cconst[2]) .. "\");"
+		else
+			return emitvalue(proto, C) .. " lua_gettable(L, lua_upvalueindex(" .. (B + 1) .. "));"
+		end
+	end;
+	-- OP_GETTABUP
+	function(pc, proto, A, B, C)
+		local consts = proto.constants
+		local Cconst = consts[INDEXK(C) + 1]
+
+		if ISK(C) and Cconst[1] == LUA_TLNGSTR and not string.find(Cconst[2], "\0", 1, true) then
+			return "lua_getfield(L, " .. B .. ", \"" .. sanitizeString(Cconst[2]) .. "\");"
+		else
+			return emitvalue(proto, C) .. " lua_gettable(L, " .. B .. ");"
+		end
+	end; -- OP_GETTABLE
+	function(pc, proto, A, B, C)
+		local consts = proto.constants
+		local Cconst = consts[INDEXK(C) + 1]
+		local Bconst = consts[INDEXK(B) + 1]
+
+		if A == 0 and ISK(B) and Bconst[1] == LUA_TLNGSTR and not string.find(Bconst[2], "\0", 1, true) then
+			return emitvalue(proto, C) .. " " .. "lua_setglobal(L, \"" .. sanitizeString(Bconst[2]) .. "\");"
+		else
+			return emitvalue(proto, B) .. " " .. emitvalue(proto, C) .. " lua_settable(L, lua_upvalueindex(" .. (A + 1) .. "));"
+		end
+	end;
+	-- OP_SETTABUP
 	function(pc, proto, A, B, C) return "{lua_Debug ar; lua_getstack(L, 0, &ar); lua_getinfo(L, \"f\", &ar);} lua_pushvalue(L, " .. A .. "); lua_setupvalue(L, 1, " .. B .. "); lua_pop(L, 1);" end; -- OP_SETUPVAL
-	function(pc, proto, A, B, C) return emitconstant(proto.constants[INDEXK(B) + 1][2]) .. " " .. emitconstant(proto.constants[INDEXK(C) + 1][2]) .. " lua_settable(L, " .. A .. ");" end; -- OP_SETTABLE
+	function(pc, proto, A, B, C)
+		local consts = proto.constants
+		local Bconst = consts[INDEXK(B) + 1]
+
+		if ISK(B) and Bconst[1] == LUA_TLNGSTR and not string.find(Bconst[2], "\0", 1, true) then
+			return emitvalue(proto, C) .. " lua_setfield(L, " .. A .. ", \"" .. sanitizeString(Bconst[2]) .. "\");"
+		else
+			return emitvalue(proto, B) .. " " .. emitvalue(proto, C) .. " lua_settable(L, " .. A .. ");"
+		end
+	end; -- OP_SETTABLE
 	function(pc, proto, A, B, C)
 		local narr, nhash = C, B
-
 		if nhash > 0 then
 			nhash = 1 << (nhash - 1)
 		end
 
-		return "lua_newtable(L, " .. narr .. ", " .. nhash .. ");"
-	end; -- OP_NEWTABLE
+		return "todo lua_newtable(L, " .. narr .. ", " .. nhash .. ");"
+	end;
+	-- OP_NEWTABLE
 	function(pc, proto, A, B, C) return "lua_getfield(L, " .. A .. ", " .. C .. "); todo" end; -- OP_SELF
 	function(pc, proto, A, B, C) return "lua_arith(L, LUA_OPADD);" end; -- OP_ADD
 	function(pc, proto, A, B, C) return "lua_arith(L, LUA_OPSUB);" end; -- OP_SUB
@@ -344,8 +383,10 @@ CAPI = {
 		else
 			return "{int top_index = lua_gettop(L); for (int vararg_index = " .. A .. "; vararg_index > " .. (B == 0 and "top_index" or "top_index < " .. (A + B) .. " : top_index" .. (A + B)) .. "; ++vararg_index) { lua_pushvalue(L, vararg_index); } for (int nil_index = top_index, int remainig = top_index - " .. B .. "; nil_index != " .. B .. "; ++nil_index) { lua_pushnil(L); } }"
 		end
-	end; -- OP_VARARG
+	end;
+	-- OP_VARARG
 	function(pc, proto, Ax) return "EXTRAARG" end; -- OP_EXTRAARG
+
 }
 
 function Dump(buffer)
