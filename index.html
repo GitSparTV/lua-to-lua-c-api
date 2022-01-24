@@ -247,6 +247,13 @@ local function emitconstant(val)
 
 	return "invalid_type = " .. t
 end
+
+local function emitvalue(proto, val)
+	if ISK(val) then
+		return emitconstant(proto.constants[INDEXK(val) + 1][2])
+	else
+		return "lua_pushvalue(L, " .. val .. ");"
+	end
 end
 
 local CAPI
