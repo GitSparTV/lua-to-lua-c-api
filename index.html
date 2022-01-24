@@ -726,16 +726,17 @@ end
 	</pre>
 
 	<pre>
-		<code class="cpp" readonly name="output">return 0;</code>
+		<code class="language-cpp" readonly name="output"></code>
 	</pre>
 
 	<pre>
-		<code class="lua" readonly name="error"></code>
+		<code class="language-lua" readonly name="error"></code>
 	</pre>
 </body>
 <script>
 const inputBox = document.getElementsByName('input')[0];
 hljs.highlightElement(inputBox);
+
 hljs.configure({ignoreUnescapedHTML: true})
 const outputBox = document.getElementsByName('output')[0];
 const errorBox = document.getElementsByName('error')[0];
@@ -765,7 +766,9 @@ inputBox.addEventListener('input', (event) => {
 	fengari.lua.lua_settop(fengari.L, 0)
 
 	hljs.highlightAll();
-	hljs.highlightElement(inputBox);
 });
+
+inputBox.value = "print(\"Hello World\")"
+inputBox.dispatchEvent(new Event("input"))
 </script>
 </html>
