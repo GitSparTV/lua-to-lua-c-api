@@ -334,7 +334,7 @@ CAPI = {
 		return "lua_createtable(L, " .. luaO_fb2int(B) .. ", " .. luaO_fb2int(C) .. ");"
 	end;
 	-- OP_NEWTABLE
-	function(pc, proto, A, B, C) return "lua_getfield(L, " .. A .. ", " .. C .. "); todo" end; -- OP_SELF
+	function(pc, proto, A, B, C) return "lua_getfield(L, " .. A .. ", \"" .. sanitizeString(proto.constants[INDEXK(C) + 1][2]) .. "\"); lua_pushvalue(L, " .. A .. "); " end; -- OP_SELF
 	function(pc, proto, A, B, C) return "lua_arith(L, LUA_OPADD);" end; -- OP_ADD
 	function(pc, proto, A, B, C) return "lua_arith(L, LUA_OPSUB);" end; -- OP_SUB
 	function(pc, proto, A, B, C) return "lua_arith(L, LUA_OPMUL);" end; -- OP_MUL
