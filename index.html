@@ -102,91 +102,67 @@ local OpCodesI = {
 	OP_EXTRAARG = 46
 }
 
-local OpArgN = 0
-local OpArgU = 1
-local OpArgR = 2
-local OpArgK = 3
-
 local iABC  = 0
 local iABx  = 1
 local iAsBx = 2
 local iAx   = 3
 
 local luaP_opmodes = {
-    [0] = 0 << 7 | 1 << 6 | OpArgR << 4 | OpArgN << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgK << 4 | OpArgN << 2 | iABx,
-    0 << 7 | 1 << 6 | OpArgN << 4 | OpArgN << 2 | iABx,
-    0 << 7 | 1 << 6 | OpArgU << 4 | OpArgU << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgU << 4 | OpArgN << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgU << 4 | OpArgN << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgU << 4 | OpArgK << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgR << 4 | OpArgK << 2 | iABC,
-    0 << 7 | 0 << 6 | OpArgK << 4 | OpArgK << 2 | iABC,
-    0 << 7 | 0 << 6 | OpArgU << 4 | OpArgN << 2 | iABC,
-    0 << 7 | 0 << 6 | OpArgK << 4 | OpArgK << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgU << 4 | OpArgU << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgR << 4 | OpArgK << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgK << 4 | OpArgK << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgK << 4 | OpArgK << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgK << 4 | OpArgK << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgK << 4 | OpArgK << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgK << 4 | OpArgK << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgK << 4 | OpArgK << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgK << 4 | OpArgK << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgK << 4 | OpArgK << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgK << 4 | OpArgK << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgK << 4 | OpArgK << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgK << 4 | OpArgK << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgK << 4 | OpArgK << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgR << 4 | OpArgN << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgR << 4 | OpArgN << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgR << 4 | OpArgN << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgR << 4 | OpArgN << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgR << 4 | OpArgR << 2 | iABC,
-    0 << 7 | 0 << 6 | OpArgR << 4 | OpArgN << 2 | iAsBx,
-    1 << 7 | 0 << 6 | OpArgK << 4 | OpArgK << 2 | iABC,
-    1 << 7 | 0 << 6 | OpArgK << 4 | OpArgK << 2 | iABC,
-    1 << 7 | 0 << 6 | OpArgK << 4 | OpArgK << 2 | iABC,
-    1 << 7 | 0 << 6 | OpArgN << 4 | OpArgU << 2 | iABC,
-    1 << 7 | 1 << 6 | OpArgR << 4 | OpArgU << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgU << 4 | OpArgU << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgU << 4 | OpArgU << 2 | iABC,
-    0 << 7 | 0 << 6 | OpArgU << 4 | OpArgN << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgR << 4 | OpArgN << 2 | iAsBx,
-    0 << 7 | 1 << 6 | OpArgR << 4 | OpArgN << 2 | iAsBx,
-    0 << 7 | 0 << 6 | OpArgN << 4 | OpArgU << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgR << 4 | OpArgN << 2 | iAsBx,
-    0 << 7 | 0 << 6 | OpArgU << 4 | OpArgU << 2 | iABC,
-    0 << 7 | 1 << 6 | OpArgU << 4 | OpArgN << 2 | iABx,
-    0 << 7 | 1 << 6 | OpArgU << 4 | OpArgN << 2 | iABC,
-    0 << 7 | 0 << 6 | OpArgU << 4 | OpArgU << 2 | iAx  
+    [0] = iABC,
+	iABx,
+	iABx,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iAsBx,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iABC,
+	iAsBx,
+	iAsBx,
+	iABC,
+	iAsBx,
+	iABC,
+	iABx,
+	iABC,
+	iAx  
 }
 
 local function getOpMode(m)
     return luaP_opmodes[m] & 3
 end
 
-local function getBMode(m)
-    return (luaP_opmodes[m] >> 4) & 3
-end
-
-local function getCMode(m)
-    return (luaP_opmodes[m] >> 2) & 3
-end
-
-local function testAMode(m)
-    return luaP_opmodes[m] & (1 << 6)
-end
-
-local function testTMode(m)
-    return luaP_opmodes[m] & (1 << 7)
-end
-
 local BITRK = (1 << (SIZE_B - 1))
 
-local MAXINDEXRK = (BITRK - 1)
-
-local NO_REG = MAXARG_A
 
 local function ISK(x)
     return x & BITRK
@@ -194,10 +170,6 @@ end
 
 local function INDEXK(r)
     return r & ~BITRK
-end
-
-local function RKASK(x)
-    return x | BITRK
 end
 
 local function MASK1(n, p)
