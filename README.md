@@ -3,7 +3,7 @@ Lua to Lua C API transpiler built with Fengari.
 
 Tool for making quick and draft representations of how Lua code looks like made with Lua C API.
 Pretend it's WIP or proof of concept because the stack will definitely leave some values.
-Moving registers is not implemented because you will have 100 lines of just popping and pushing values.
+Register moves are not implemented because you will have 100 lines of just popping and pushing values.
 
 __[<img src="https://raw.githubusercontent.com/GitSparTV/GitSparTV/681727efe146af9a4f3042c121072d0e60bd3e95/saythanks.svg" width="300">](https://gitspartv.github.io/GitSparTV/saythanks.html)__
 
