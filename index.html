@@ -179,6 +179,46 @@ local function MASK0(n, p)
     return (~MASK1(n, p))
 end
 
+local function sanitizeString(val)
+	if string.find(val, "[%G\n\r\"\\\a\b\f\r\v]") then
+		local sanitized = {}
+
+		for k = 1, #val do
+			local char = string.sub(val, k, k)
+
+			if char == "\n" then
+				sanitized[k] = "\\n"
+			elseif char == "\t" then
+				sanitized[k] = "\\r"
+			elseif char == "\"" then
+				sanitized[k] = "\\\""
+			elseif char == "\\" then
+				sanitized[k] = "\\\\"
+			elseif char == "\a" then
+				sanitized[k] = "\\a"
+			elseif char == "\b" then
+				sanitized[k] = "\\b"
+			elseif char == "\f" then
+				sanitized[k] = "\\f"
+			elseif char == "\r" then
+				sanitized[k] = "\\r"
+			elseif char == "\v" then
+				sanitized[k] = "\\v"
+			else
+				if string.find(char, "[%g%s]") then
+					sanitized[k] = char
+				else
+					sanitized[k] = string.format("\\x%X", string.byte(char))
+				end
+			end
+		end
+
+		val = table.concat(sanitized)
+	end
+
+	return val
+end
+
 local function emitconstant(val)
 	local t = type(val)
 
@@ -191,44 +231,13 @@ local function emitconstant(val)
 			return "lua_pushnumber(L, " .. val .. ");"
 		end
 	elseif t == "string" then
-		if string.find(val, "[%G\n\r\"\\\a\b\f\r\v]") then
-			local sanitized = {}
+		local has_zero = string.find(val, "\0", 1, true)
+		local real_len = #val
 
-			for k = 1, #val do
-				local char = string.sub(val, k, k)
+		val = sanitizeString(val)
 
-				if char == "\n" then
-					sanitized[k] = "\\n"
-				elseif char == "\t" then
-					sanitized[k] = "\\r"
-				elseif char == "\"" then
-					sanitized[k] = "\\\""
-				elseif char == "\\" then
-					sanitized[k] = "\\\\"
-				elseif char == "\a" then
-					sanitized[k] = "\\a"
-				elseif char == "\b" then
-					sanitized[k] = "\\b"
-				elseif char == "\f" then
-					sanitized[k] = "\\f"
-				elseif char == "\r" then
-					sanitized[k] = "\\r"
-				elseif char == "\v" then
-					sanitized[k] = "\\v"
-				else
-					if string.find(char, "%g") then
-						sanitized[k] = c
-					else
-						sanitized[k] = string.format("\\x%X", string.byte(char))
-					end
-				end
-			end
-
-			val = table.concat(sanitized)
-		end
-
-		if string.find(val, "\0", 1, true) then
-			return "lua_pushlstring(L, \"" .. val .. "\", " .. #val .. ");"
+		if has_zero then
+			return "lua_pushlstring(L, \"" .. val .. "\", " .. real_len .. ");"
 		else
 			return "lua_pushstring(L, \"" .. val .. "\");"
 		end
