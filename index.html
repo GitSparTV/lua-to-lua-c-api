@@ -256,6 +256,10 @@ local function emitvalue(proto, val)
 	end
 end
 
+local function luaO_fb2int(x)
+	return (x < 8) and x or ((x & 7) + 8) << ((x >> 3) - 1);
+end
+
 local CAPI
 
 CAPI = {
@@ -323,12 +327,11 @@ CAPI = {
 		end
 	end; -- OP_SETTABLE
 	function(pc, proto, A, B, C)
-		local narr, nhash = C, B
-		if nhash > 0 then
-			nhash = 1 << (nhash - 1)
+		if B == 0 and C == 0 then
+			return "lua_newtable(L);"
 		end
 
-		return "todo lua_newtable(L, " .. narr .. ", " .. nhash .. ");"
+		return "lua_createtable(L, " .. luaO_fb2int(B) .. ", " .. luaO_fb2int(C) .. ");"
 	end;
 	-- OP_NEWTABLE
 	function(pc, proto, A, B, C) return "lua_getfield(L, " .. A .. ", " .. C .. "); todo" end; -- OP_SELF
