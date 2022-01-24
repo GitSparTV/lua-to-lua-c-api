@@ -244,6 +244,9 @@ local function emitconstant(val)
 	elseif t == "boolean" then
 		return "lua_pushboolean(L, " .. (val and 1 or 0) .. ");"
 	end
+
+	return "invalid_type = " .. t
+end
 end
 
 local CAPI
