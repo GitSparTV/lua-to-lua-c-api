@@ -163,9 +163,8 @@ end
 
 local BITRK = (1 << (SIZE_B - 1))
 
-
 local function ISK(x)
-    return x & BITRK
+    return (x & BITRK) ~= 0
 end
 
 local function INDEXK(r)
