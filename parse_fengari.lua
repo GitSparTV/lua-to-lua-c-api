@@ -219,7 +219,6 @@ local function emitconstant(val)
 	elseif t == "string" then
 		local has_zero = string.find(val, "\0", 1, true)
 		local real_len = #val
-
 		val = sanitizeString(val)
 
 		if has_zero then
@@ -288,7 +287,8 @@ CAPI = {
 		else
 			return emitvalue(proto, C) .. " lua_gettable(L, " .. B .. ");"
 		end
-	end; -- OP_GETTABLE
+	end;
+	-- OP_GETTABLE
 	function(pc, proto, A, B, C)
 		local consts = proto.constants
 		local Cconst = consts[INDEXK(C) + 1]
@@ -311,11 +311,10 @@ CAPI = {
 		else
 			return emitvalue(proto, B) .. " " .. emitvalue(proto, C) .. " lua_settable(L, " .. A .. ");"
 		end
-	end; -- OP_SETTABLE
+	end;
+	-- OP_SETTABLE
 	function(pc, proto, A, B, C)
-		if B == 0 and C == 0 then
-			return "lua_newtable(L);"
-		end
+		if B == 0 and C == 0 then return "lua_newtable(L);" end
 
 		return "lua_createtable(L, " .. luaO_fb2int(B) .. ", " .. luaO_fb2int(C) .. ");"
 	end;
@@ -375,7 +374,6 @@ CAPI = {
 	end;
 	-- OP_VARARG
 	function(pc, proto, Ax) return "EXTRAARG" end; -- OP_EXTRAARG
-
 }
 
 function Dump(buffer)
@@ -608,6 +606,7 @@ function reader:func(parent)
 end
 
 local output = {}
+
 local function print(...)
 	for k = 1, select("#", ...) do
 		output[#output + 1] = select(k, ...)
@@ -615,7 +614,6 @@ local function print(...)
 
 	output[#output + 1] = "\n"
 end
-
 
 local function dumpFunc(proto)
 	if #proto.protos ~= 0 then
