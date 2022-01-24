@@ -538,7 +538,7 @@ function reader:protos()
 
 		self:goTo(parent.i)
 
-		protos[i].name = "closure_of_" .. (self.currentProto.parent and self.currentProto.i or "main") .. "_" .. i
+		protos[i].name = "closure_of_" .. (self.currentProto.parent and self.currentProto.i or "lua_openmodule") .. "_" .. i
 		protos[i].parent = self.currentProto
 	end
 end
@@ -618,68 +618,47 @@ function reader:func(parent)
 	self:debug()
 end
 
+local output = {}
+local function print(...)
+	for k = 1, select("#", ...) do
+		output[#output + 1] = select(k, ...)
+	end
+
+	output[#output + 1] = "\n"
+end
+
+
+local function dumpFunc(proto)
+	if #proto.protos ~= 0 then
+		for cproto = 1, #proto.protos do
+			dumpFunc(proto.protos[cproto])
+		end
+	end
+
+	print("static int " .. (proto.name or "lua_openmodule") .. "(lua_State* L) {")
+
+	for k = 1, #proto.instructions do
+		local inst = proto.instructions[k]
+		local name = OpCodes[inst.opcode]
+
+		if getOpMode(inst.opcode) == iABC then
+			print("    ", (inst.has_label and "instruction_" .. k .. ":   " or "") .. CAPI[inst.opcode](k, proto, inst.A, inst.B, inst.C))
+		elseif getOpMode(inst.opcode) == iABx then
+			print("    ", (inst.has_label and "instruction_" .. k .. ":   " or "") .. CAPI[inst.opcode](k, proto, inst.A, inst.Bx))
+		elseif getOpMode(inst.opcode) == iAsBx then
+			print("    ", (inst.has_label and "instruction_" .. k .. ":   " or "") .. CAPI[inst.opcode](k, proto, inst.A, inst.sBx))
+		elseif getOpMode(inst.opcode) == iAx then
+			print("    ", (inst.has_label and "instruction_" .. k .. ":   " or "") .. CAPI[inst.opcode](k, proto, inst.Ax))
+		end
+	end
+
+	print("}\n")
+end
+
 function reader:dumpFuncs()
-	local output = {}
+	output = {}
 
-	local function print(...)
-		for k = 1, select("#", ...) do
-			output[#output + 1] = select(k, ...)
-		end
-
-		output[#output + 1] = "\n"
-	end
-
-	for k = 1, #self.protosObj do
-		local proto = self.protosObj[k]
-
-		-- print("Proto #" .. k)
-
-		-- local source_lines = {}
-
-		-- for line in string.gmatch(proto.source, "[^\n]+") do
-			-- source_lines[#source_lines + 1] = line
-		-- end
-
-		-- print("Source code: [[\n" .. table.concat(source_lines, "\n", proto.lineDefined, proto.lastLineDefined - proto.lineDefined) .. "\n]]")
-		-- print("function <" .. proto.lineDefined .. "," .. proto.lastLineDefined .."> (" .. #proto.instructions .. " instructions)")
-		-- print(proto.numParams .. (proto.isVararg and "+" or "") .. " params, " .. proto.maxStackSize .. " slots, " .. #proto.upvalues .. " upvalues, " .. #proto.locals .. " locals, " .. #proto.constants .. " constants, " .. #proto.protos .. " function")
-
-		for k = 1, #proto.instructions do
-			local inst = proto.instructions[k]
-			local name = OpCodes[inst.opcode]
-
-			if getOpMode(inst.opcode) == iABC then
-				print((inst.has_label and "instruction_" .. k .. ":   " or "") .. CAPI[inst.opcode](k, proto, inst.A, inst.B, inst.C))
-			elseif getOpMode(inst.opcode) == iABx then
-				print((inst.has_label and "instruction_" .. k .. ":   " or "") .. CAPI[inst.opcode](k, proto, inst.A, inst.Bx))
-			elseif getOpMode(inst.opcode) == iAsBx then
-				print((inst.has_label and "instruction_" .. k .. ":   " or "") .. CAPI[inst.opcode](k, proto, inst.A, inst.sBx))
-			elseif getOpMode(inst.opcode) == iAx then
-				print((inst.has_label and "instruction_" .. k .. ":   " or "") .. CAPI[inst.opcode](k, proto, inst.Ax))
-			end
-		end
-
-		-- print()
-		-- for k = 1, #proto.locals do
-		-- 	local local_val = proto.locals[k]
-
-		-- 	print(k, local_val.varname, local_val.startpc + 1, local_val.endpc + 1)
-		-- end
-
-		-- print()
-		-- for k = 1, #proto.constants do
-		-- 	local const = proto.constants[k]
-
-		-- 	print(k, type(const[2]), const[2])
-		-- end
-
-		-- print()
-		-- for k = 1, #proto.upvalues do
-		-- 	local upvalue = proto.upvalues[k]
-
-		-- 	print(upvalue.name, upvalue.instack, upvalue.idx)
-		-- end
-	end
+	dumpFunc(self.protosObj[1])
 
 	return table.concat(output)
 end
